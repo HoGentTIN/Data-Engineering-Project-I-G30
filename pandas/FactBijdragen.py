@@ -5,7 +5,7 @@ from sqlalchemy import text
 # 📌 Databaseverbinding instellen
 server = "localhost"
 database = "EnergyDWH"
-csv_path = r"C:\Users\smets\OneDrive\Documenten\Hogent\Jaar 2\semester2\DEP1\Bijdragen.csv"
+csv_path = "Data-Engineering-Project-I-G30\data\input\Bijdragen.csv"
 engine = sqlalchemy.create_engine(f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server")
 
 # 📌 Stap 1: Maak de SQL-tabel FactHeffingen aan en voeg een foreign key naar DimDate toe

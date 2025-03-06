@@ -6,7 +6,7 @@ from sqlalchemy import text
 # 📌 Databaseverbinding instellen
 server = "localhost"
 database = "EnergyDWH"
-csv_path = r"C:\Users\smets\OneDrive\Documenten\Hogent\Jaar 2\semester2\DEP1\P6269_1_50_DMK_Sample_Elek.csv"
+csv_path = "Data-Engineering-Project-I-G30\data\input\P6269_1_50_DMK_Legende_E.xlsx"
 bulk_csv_path = "C:/Users/smets/OneDrive/Documenten/Hogent/Jaar 2/semester2/DEP1/uitgepakte_data/FactUser_Bulk.csv"
 engine = sqlalchemy.create_engine(f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server")
 

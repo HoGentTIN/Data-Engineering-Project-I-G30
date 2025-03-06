@@ -36,7 +36,7 @@ with engine.connect() as conn:
 print(f"✅ SQL-tabel {table_name} succesvol aangemaakt met relatie naar DimDate.")
 
 # 📌 Stap 2: CSV-bestand inlezen
-csv_file = "C:/Users/smets/OneDrive/Documenten/Hogent/Jaar 2/semester2/DEP1/Distributiekosten.csv"
+csv_file = "Data-Engineering-Project-I-G30\data\input\Distributiekosten.csv"
 df_distributiekosten = pd.read_csv(csv_file, delimiter=",")
 
 # ✅ Print de kolomnamen om te controleren

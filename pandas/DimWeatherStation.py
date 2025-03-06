@@ -10,7 +10,7 @@ table_name = "DimWeatherStation"
 engine = sqlalchemy.create_engine(f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server")
 
 # 📌 CSV inlezen
-csv_path = "aws_station.csv"
+csv_path = "Data-Engineering-Project-I-G30\data\input\aws_station.csv"
 df_weather = pd.read_csv(csv_path)
 
 # 📌 Latitude & Longitude extraheren

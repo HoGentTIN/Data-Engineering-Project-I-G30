@@ -10,7 +10,7 @@ table_name = "FactBelpex"
 engine = sqlalchemy.create_engine(f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server")
 
 # 📌 Stap 2: CSV inlezen met juiste encoding en scheidingsteken
-csv_path = r"C:\Users\smets\OneDrive\Documenten\Hogent\Jaar 2\semester2\DEP1\BelpexFilter.csv"
+csv_path = "Data-Engineering-Project-I-G30\data\input\BelpexFilter.csv"
 df_belpex = pd.read_csv(csv_path, encoding="ISO-8859-1", sep=";", dtype=str)  # ✅ Lees als string om fouten te voorkomen
 
 # 📌 Debugging - Controleer of de kolommen correct zijn

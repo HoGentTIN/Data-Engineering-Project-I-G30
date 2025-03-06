@@ -9,7 +9,7 @@ table_name = "FactWeather"
 engine = sqlalchemy.create_engine(f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server")
 
 # 📌 Stap 2: CSV inlezen (Pas dit pad aan als nodig)
-csv_path = r"C:\Users\smets\OneDrive\Documenten\Hogent\Jaar 2\semester2\DEP1\aws_1day.csv"
+csv_path = "Data-Engineering-Project-I-G30\data\input\aws_1day.csv"
 df_weather = pd.read_csv(csv_path)
 
 # 📌 Stap 3: Kolomnamen controleren
