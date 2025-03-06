@@ -14,25 +14,36 @@ def extract_info_from_pdf(pdf_path):
     with open(pdf_path, "rb") as file:
         reader = PyPDF2.PdfReader(file)
         text = "\n".join(page.extract_text() for page in reader.pages if page.extract_text())
-    
-    # Zoek naar de maand en het jaar in de tekst
+
     month_year_match = re.search(r'([A-Za-z]+)\s*(\d{4})\s*-\s*residentieel', text, re.IGNORECASE)
-    
-    # Verbeterde regex voor het "vast bedrag"
-    price_regex = r'c€([0-9]{1,3}(?:[\.,][0-9]{2}))\/kWh'
-    price_match = re.search(price_regex, text)
-    
-    # Zorg ervoor dat alleen de eerste prijs wordt gebruikt
-    if price_match:
-        print(f"Gevonden prijs: {price_match.group(1)}")  # Debugging om te zien wat er wordt gevonden
-    
+
+    # Prijzen zoeken
+    price_regex = r'c€\s*([\d,]+)\s*/kWh'
+    price_matches = re.findall(price_regex, text, re.S)
+
+    # Vaste vergoeding zoeken
+    fixed_cost_match = re.search(r'€\s*([\d,]+)\s*/maand\s*Platformkost', text)
+    fixed_cost = float(fixed_cost_match.group(1).replace(',', '.')) * 12 if fixed_cost_match else "Onbekend"
+
+    # Belpex-formule zoeken
+    belpex_match = re.search(r'Belpex\s*\*\s*([\d.,]+)\s*-\s*([\d.,]+)', text)
+    meterfactor = belpex_match.group(1) if belpex_match else "Onbekend"
+    balanseringskost = belpex_match.group(2) if belpex_match else "Onbekend"
+
     data = {
         "Maand": clean_text(month_year_match.group(1)) if month_year_match else "Onbekend",
         "Jaar": clean_text(month_year_match.group(2)) if month_year_match else "Onbekend",
         "Leverancier": "Bolt",
-        "Vast Bedrag": price_match.group(1) if price_match else "Onbekend",  # Dit is het getal na 'c€' en voor '/kWh'
+        "Enkelvoudig": price_matches[0] if len(price_matches) > 0 else "Onbekend",
+        "Dag": price_matches[1] if len(price_matches) > 1 else "Onbekend",
+        "Nacht": price_matches[2] if len(price_matches) > 2 else "Onbekend",
+        "Excl_nacht": price_matches[3] if len(price_matches) > 3 else "Onbekend",
+        "Vaste_vergoeding": fixed_cost,
+        "Meterfactor": meterfactor,
+        "Balanseringskost": balanseringskost
     }
     return data
+
 
 def process_pdfs(directory, output_csv):
     directory = os.path.expanduser(directory)
@@ -42,7 +53,7 @@ def process_pdfs(directory, output_csv):
     
     with open(output_csv, mode="w", newline="", encoding="utf-8") as file:
         # Pas de delimiter aan naar puntkomma
-        writer = csv.DictWriter(file, fieldnames=["Maand", "Jaar", "Leverancier", "Vast Bedrag"], delimiter=';')
+        writer = csv.DictWriter(file, fieldnames=["Maand", "Jaar", "Leverancier", "Enkelvoudig", "Dag", "Nacht", "Excl_nacht", "Vaste_vergoeding", "Meterfactor", "Balanseringskost"], delimiter=';')
         writer.writeheader()
         
         for filename in os.listdir(directory):
