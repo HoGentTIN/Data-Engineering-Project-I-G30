@@ -67,7 +67,7 @@ print(f"🔍 Aantal NaN in {time_col} na conversie: {df_users[time_col].isna().s
 # Vervang NaN door standaardwaarden om crash te voorkomen
 df_users[time_col] = df_users[time_col].fillna(pd.Timestamp("2000-01-01 00:00:00"))
 df_users["DateKey"] = df_users[time_col].dt.strftime("%Y%m%d").astype(int)
-df_users["TimeKey"] = df_users[time_col].dt.strftime("%H%M%S").astype(int)
+df_users["TimeKey"] = df_users[time_col].dt.strftime("%H%M").astype(int)
 
 # 📌 Stap 4: DimUser vullen en opslaan
 dim_user_columns = [

@@ -10,32 +10,30 @@ table_name = "FactBelpex"
 engine = sqlalchemy.create_engine(f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server")
 
 # 📌 Stap 2: CSV inlezen met juiste encoding en scheidingsteken
-csv_path = "BelpexFilter (1).csv"  # Pas aan naar jouw bestandspad
-df_belpex = pd.read_csv(csv_path, encoding="ISO-8859-1", sep=";", dtype=str)  # Lees alles als string om fouten te voorkomen
+csv_path = r"C:\Users\smets\OneDrive\Documenten\Hogent\Jaar 2\semester2\DEP1\BelpexFilter.csv"
+df_belpex = pd.read_csv(csv_path, encoding="ISO-8859-1", sep=";", dtype=str)  # ✅ Lees als string om fouten te voorkomen
 
 # 📌 Debugging - Controleer of de kolommen correct zijn
 print("📌 Kolommen in CSV:", df_belpex.columns)
 
-# 📌 Stap 3: Datum en tijd splitsen naar DateKey en TimeKey
+# ✅ Stap 3: Datum en tijd splitsen naar DateKey en TimeKey
 df_belpex["Date"] = pd.to_datetime(df_belpex["Date"].str.split(" ").str[0], format="%d/%m/%Y", errors="coerce")
-df_belpex["Time"] = df_belpex["Date"].astype(str).str.split(" ").str[1]
-df_belpex["Time"] = df_belpex["Time"].fillna("00:00:00")  # Vul lege tijdwaarden met "00:00:00"
 
-# **Maak DateKey en TimeKey in het juiste formaat (integer)**
+# ✅ Tijd correct verwerken en TimeKey aanmaken in HHMM formaat
+df_belpex["Time"] = df_belpex["Date"].astype(str).str.split(" ").str[1].fillna("00:00:00")
+df_belpex["TimeKey"] = pd.to_datetime(df_belpex["Time"], format="%H:%M:%S", errors="coerce").dt.strftime("%H%M").astype(int)
+
+# ✅ Maak DateKey in YYYYMMDD formaat
 df_belpex["DateKey"] = df_belpex["Date"].dt.strftime("%Y%m%d").astype(int)
-df_belpex["TimeKey"] = pd.to_datetime(df_belpex["Time"], format="%H:%M:%S", errors="coerce").dt.strftime("%H%M%S").astype(int)
 
 # 📌 Stap 4: Speciale tekens verwijderen en komma vervangen door punt
 def clean_currency(value):
-    if isinstance(value, str):
-        value = re.sub(r"[^\d,]", "", value)  # Verwijder alle niet-numerieke tekens behalve komma
-        return value.replace(",", ".")  # Vervang komma door punt
-    return value
+    if pd.isna(value) or value.strip() == "":
+        return 0.0  # ✅ Voorkom fouten bij lege waarden
+    value = re.sub(r"[^\d,]", "", value)  # Verwijder alle niet-numerieke tekens behalve komma
+    return float(value.replace(",", "."))  # Vervang komma door punt en zet om naar float
 
-df_belpex["Euro"] = df_belpex["Euro"].apply(clean_currency).astype(float)  # Converteer naar float
-
-# 📌 Debugging - Controleer of Euro-kolom correct is geconverteerd
-print("🔍 Unieke waarden in Euro-kolom:\n", df_belpex["Euro"].unique())
+df_belpex["Euro"] = df_belpex["Euro"].apply(clean_currency)
 
 # 📌 Stap 5: Selecteer relevante kolommen
 columns = ["DateKey", "TimeKey", "Euro"]
@@ -57,9 +55,17 @@ with engine.connect() as conn:
     """))
     conn.commit()
 
-# 📌 Stap 7: Controleer of DateKey en TimeKey waarden geldig zijn
-valid_dates = pd.read_sql("SELECT DateKey FROM DimDate", engine)["DateKey"].tolist()
-valid_times = pd.read_sql("SELECT TimeKey FROM DimTime", engine)["TimeKey"].tolist()
+print("✅ Tabel FactBelpex succesvol aangemaakt.")
+
+# 📌 Stap 7: **Efficiënte validatie van DateKey en TimeKey**
+with engine.connect() as conn:
+    valid_keys = pd.read_sql("""
+        SELECT DateKey, TimeKey FROM DimDate
+        CROSS JOIN DimTime
+    """, conn)
+
+valid_dates = set(valid_keys["DateKey"])
+valid_times = set(valid_keys["TimeKey"])
 
 df_belpex = df_belpex[df_belpex["DateKey"].isin(valid_dates)]
 df_belpex = df_belpex[df_belpex["TimeKey"].isin(valid_times)]
